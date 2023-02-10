@@ -1,11 +1,11 @@
-import { auth, firestore, googleAuthProvider } from '@lib/firebase';
-import { doc, writeBatch, getDoc, getFirestore } from 'firebase/firestore';
-import { signInWithPopup, signInAnonymously, signOut } from 'firebase/auth';
-import { UserContext } from '@lib/context';
-import Metatags from '@components/Metatags';
+import { auth, firestore, googleAuthProvider } from "@lib/firebase";
+import { doc, writeBatch, getDoc, getFirestore } from "firebase/firestore";
+import { signInWithPopup, signInAnonymously, signOut } from "firebase/auth";
+import { UserContext } from "@lib/context";
+import Metatags from "@components/Metatags";
 
-import { useEffect, useState, useCallback, useContext } from 'react';
-import debounce from 'lodash.debounce';
+import { useEffect, useState, useCallback, useContext } from "react";
+import debounce from "lodash.debounce";
 
 export default function Enter(props) {
   const { user, username } = useContext(UserContext);
@@ -16,7 +16,15 @@ export default function Enter(props) {
   return (
     <main>
       <Metatags title="Enter" description="Sign up for this amazing app!" />
-      {user ? !username ? <UsernameForm /> : <SignOutButton /> : <SignInButton />}
+      {user ? (
+        !username ? (
+          <UsernameForm />
+        ) : (
+          <SignOutButton />
+        )
+      ) : (
+        <SignInButton />
+      )}
     </main>
   );
 }
@@ -24,17 +32,17 @@ export default function Enter(props) {
 // Sign in with Google button
 function SignInButton() {
   const signInWithGoogle = async () => {
-    await signInWithPopup(auth, googleAuthProvider)
+    await signInWithPopup(auth, googleAuthProvider);
   };
 
   return (
     <>
       <button className="btn-google" onClick={signInWithGoogle}>
-        <img src={'/google.png'} width="30px" /> Sign in with Google
+        <img src={"/google.png"} width="30px" /> Sign in with Google
       </button>
-      <button onClick={() => signInAnonymously(auth)}>
+      {/* <button onClick={() => signInAnonymously(auth)}>
         Sign in Anonymously
-      </button>
+      </button> */}
     </>
   );
 }
@@ -46,7 +54,7 @@ function SignOutButton() {
 
 // Username form
 function UsernameForm() {
-  const [formValue, setFormValue] = useState('');
+  const [formValue, setFormValue] = useState("");
   const [isValid, setIsValid] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -56,12 +64,16 @@ function UsernameForm() {
     e.preventDefault();
 
     // Create refs for both documents
-    const userDoc = doc(getFirestore(), 'users', user.uid);
-    const usernameDoc = doc(getFirestore(), 'usernames', formValue);
+    const userDoc = doc(getFirestore(), "users", user.uid);
+    const usernameDoc = doc(getFirestore(), "usernames", formValue);
 
     // Commit both docs together as a batch write.
     const batch = writeBatch(getFirestore());
-    batch.set(userDoc, { username: formValue, photoURL: user.photoURL, displayName: user.displayName });
+    batch.set(userDoc, {
+      username: formValue,
+      photoURL: user.photoURL,
+      displayName: user.displayName,
+    });
     batch.set(usernameDoc, { uid: user.uid });
 
     await batch.commit();
@@ -97,9 +109,9 @@ function UsernameForm() {
   const checkUsername = useCallback(
     debounce(async (username) => {
       if (username.length >= 3) {
-        const ref = doc(getFirestore(), 'usernames', username);
+        const ref = doc(getFirestore(), "usernames", username);
         const snap = await getDoc(ref);
-        console.log('Firestore read executed!', snap.exists());
+        console.log("Firestore read executed!", snap.exists());
         setIsValid(!snap.exists());
         setLoading(false);
       }
@@ -112,8 +124,17 @@ function UsernameForm() {
       <section>
         <h3>Choose Username</h3>
         <form onSubmit={onSubmit}>
-          <input name="username" placeholder="myname" value={formValue} onChange={onChange} />
-          <UsernameMessage username={formValue} isValid={isValid} loading={loading} />
+          <input
+            name="username"
+            placeholder="myname"
+            value={formValue}
+            onChange={onChange}
+          />
+          <UsernameMessage
+            username={formValue}
+            isValid={isValid}
+            loading={loading}
+          />
           <button type="submit" className="btn-green" disabled={!isValid}>
             Choose
           </button>
